@@ -9,7 +9,7 @@ type Lexer struct {
 	current_char  byte
 }
 
-func new(input string) *Lexer {
+func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.read_char()
 	return l
@@ -67,7 +67,7 @@ func is_digit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
-func (lexer *Lexer) next_token() token.Token {
+func (lexer *Lexer) NextToken() token.Token {
 	var tok token.Token
 	lexer.skip_whitespace()
 
