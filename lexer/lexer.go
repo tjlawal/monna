@@ -29,6 +29,14 @@ func (lexer *Lexer) read_char() {
 	lexer.read_position += 1
 }
 
+func (lexer *Lexer) peek_char() byte {
+	if lexer.read_position >= len(lexer.input) {
+		return 0
+	} else {
+		return lexer.input[lexer.read_position]
+	}
+}
+
 func (lexer *Lexer) read_identifier() string {
 	position := lexer.position
 	for is_letter(lexer.current_char) {
@@ -49,13 +57,13 @@ func (lexer *Lexer) skip_whitespace() {
 
 func (lexer *Lexer) read_number() string {
 	position := lexer.position
-	for is_digit(lexer.current_char){
+	for is_digit(lexer.current_char) {
 		lexer.read_char()
 	}
-	return lexer.input[position: lexer.position]
+	return lexer.input[position:lexer.position]
 }
 
-func is_digit(ch byte) bool{
+func is_digit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
@@ -65,7 +73,23 @@ func (lexer *Lexer) next_token() token.Token {
 
 	switch lexer.current_char {
 	case '=':
-		tok = new_token(token.ASSIGN, lexer.current_char)
+		if lexer.peek_char() == '=' {
+			ch := lexer.current_char
+			lexer.read_char()
+			literal := string(ch) + string(lexer.current_char)
+			tok = token.Token{Type: token.EQ, Literal: literal}
+		} else {
+			tok = new_token(token.ASSIGN, lexer.current_char)
+		}
+	case '!':
+		if lexer.peek_char() == '=' {
+			ch := lexer.current_char
+			lexer.read_char()
+			literal := string(ch) + string(lexer.current_char)
+			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+		} else {
+			tok = new_token(token.BANG, lexer.current_char)
+		}
 	case ';':
 		tok = new_token(token.SEMICOLON, lexer.current_char)
 	case '(':
@@ -80,6 +104,16 @@ func (lexer *Lexer) next_token() token.Token {
 		tok = new_token(token.COMMA, lexer.current_char)
 	case '+':
 		tok = new_token(token.PLUS, lexer.current_char)
+	case '-':
+		tok = new_token(token.MINUS, lexer.current_char)
+	case '/':
+		tok = new_token(token.SLASH, lexer.current_char)
+	case '*':
+		tok = new_token(token.ASTERISK, lexer.current_char)
+	case '<':
+		tok = new_token(token.LT, lexer.current_char)
+	case '>':
+		tok = new_token(token.GT, lexer.current_char)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
