@@ -1,9 +1,9 @@
 package parser
 
 import (
+	"testing"
 	"monkey/ast"
 	"monkey/lexer"
-	"testing"
 )
 
 func TestLetStatement(t *testing.T) {
@@ -13,7 +13,7 @@ func TestLetStatement(t *testing.T) {
 				let foobar = 878688;
 	`
 	l_lexer := lexer.New(input)
-	l_parser = New(l_lexer)
+	l_parser := New(l_lexer)
 
 	program := l_parser.ParseProgram()
 	if program == nil {
@@ -24,7 +24,7 @@ func TestLetStatement(t *testing.T) {
 	}
 
 	tests := []struct {
-		expetedIdentifier string
+		expectedIdentifier string
 	}{
 		{"x"},
 		{"y"},
@@ -57,7 +57,8 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 	}
 
 	if letStmt.Name.TokenLiteral() != name {
-		e.Errorf("letStmt.Name.TokenLiteral() not '%s', got=%s", name, letStmt.Name.TokenLiteral())
+		t.Errorf("letStmt.Name.TokenLiteral() not '%s', got=%s", name, letStmt.Name.TokenLiteral())
+		return false
 	}
 	return true
 }
