@@ -3,7 +3,7 @@ package ast
 import "monkey/token"
 
 type Node interface {
-	TokeLiteral() string
+	TokenLiteral() string
 }
 
 type Statement interface {
