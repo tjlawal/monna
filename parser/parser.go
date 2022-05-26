@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
 	"monkey/token"
@@ -10,16 +11,22 @@ type Parser struct {
 	lexer         *lexer.Lexer
 	current_token token.Token
 	peek_token    token.Token
+
+	errors []string
 }
 
 func New(l_lexer *lexer.Lexer) *Parser {
-	l_parser := &Parser{lexer: l_lexer}
+	l_parser := &Parser{lexer: l_lexer, errors: []string{}}
 
 	// Read two tokens so current_token and peek_token are both set
 	l_parser.next_token()
 	l_parser.next_token()
 
 	return l_parser
+}
+
+func (l_parser *Parser) Errors() []string {
+	return l_parser.errors
 }
 
 func (l_parser *Parser) ParseProgram() *ast.Program {
@@ -68,19 +75,25 @@ func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
 	return statement
 }
 
+func (l_parser *Parser) expect_peek(l_token token.TokenType) bool {
+	if l_parser.peek_token_is(l_token) {
+		l_parser.next_token()
+		return true
+	} else {
+		l_parser.peek_error(l_token)
+		return false
+	}
+}
+
+func (l_parser *Parser) peek_error(l_token token.TokenType) {
+	message := fmt.Sprintf("expected next token to be %s, got %s", l_token, l_parser.peek_token.Type)
+	l_parser.errors = append(l_parser.errors, message)
+}
+
 func (l_parser *Parser) current_token_is(l_token token.TokenType) bool {
 	return l_parser.current_token.Type == l_token
 }
 
 func (l_parser *Parser) peek_token_is(l_token token.TokenType) bool {
 	return l_parser.peek_token.Type == l_token
-}
-
-func (l_parser *Parser) expect_peek(l_token token.TokenType) bool {
-	if l_parser.peek_token_is(l_token) {
-		l_parser.next_token()
-		return true
-	} else {
-		return false
-	}
 }
