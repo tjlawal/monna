@@ -10,8 +10,9 @@ type Token struct {
 const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
+	COMMENT = "COMMENT" // TODO(tijani): Implement this!!
 
-	// Identifiers + Literals
+	// Identifiers and basic type literals
 	IDENT = "IDENT"
 	INT   = "INT"
 
