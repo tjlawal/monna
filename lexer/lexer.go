@@ -9,63 +9,11 @@ type Lexer struct {
 	current_char  byte
 }
 
-func new_token(TokenType token.TokenType, ch byte) token.Token {
-	return token.Token{Type: TokenType, Literal: string(ch)}
-}
-
-func (l_lexer *Lexer) read_char() {
-	if l_lexer.read_position >= len(l_lexer.input) {
-		l_lexer.current_char = 0
-	} else {
-		l_lexer.current_char = l_lexer.input[l_lexer.read_position]
-	}
-	l_lexer.position = l_lexer.read_position
-	l_lexer.read_position += 1
-}
-
-func (l_lexer *Lexer) peek_char() byte {
-	if l_lexer.read_position >= len(l_lexer.input) {
-		return 0
-	} else {
-		return l_lexer.input[l_lexer.read_position]
-	}
-}
-
-func (l_lexer *Lexer) read_identifier() string {
-	position := l_lexer.position
-	for is_letter(l_lexer.current_char) {
-		l_lexer.read_char()
-	}
-	return l_lexer.input[position:l_lexer.position]
-}
-
-func is_letter(ch byte) bool {
-	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
-}
-
-func (l_lexer *Lexer) skip_whitespace() {
-	for l_lexer.current_char == ' ' || l_lexer.current_char == '\t' || l_lexer.current_char == '\n' || l_lexer.current_char == '\r' {
-		l_lexer.read_char()
-	}
-}
-
-func (l_lexer *Lexer) read_number() string {
-	position := l_lexer.position
-	for is_digit(l_lexer.current_char) {
-		l_lexer.read_char()
-	}
-	return l_lexer.input[position:l_lexer.position]
-}
-
-func is_digit(ch byte) bool {
-	return '0' <= ch && ch <= '9'
-}
-
 func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.read_char()
 	return l
-} 
+}
 
 func (l_lexer *Lexer) NextToken() token.Token {
 	var tok token.Token
@@ -133,4 +81,56 @@ func (l_lexer *Lexer) NextToken() token.Token {
 	}
 	l_lexer.read_char()
 	return tok
+}
+
+func new_token(TokenType token.TokenType, ch byte) token.Token {
+	return token.Token{Type: TokenType, Literal: string(ch)}
+}
+
+func (l_lexer *Lexer) read_char() {
+	if l_lexer.read_position >= len(l_lexer.input) {
+		l_lexer.current_char = 0
+	} else {
+		l_lexer.current_char = l_lexer.input[l_lexer.read_position]
+	}
+	l_lexer.position = l_lexer.read_position
+	l_lexer.read_position += 1
+}
+
+func (l_lexer *Lexer) peek_char() byte {
+	if l_lexer.read_position >= len(l_lexer.input) {
+		return 0
+	} else {
+		return l_lexer.input[l_lexer.read_position]
+	}
+}
+
+func (l_lexer *Lexer) read_identifier() string {
+	position := l_lexer.position
+	for is_letter(l_lexer.current_char) {
+		l_lexer.read_char()
+	}
+	return l_lexer.input[position:l_lexer.position]
+}
+
+func is_letter(ch byte) bool {
+	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch == '_'
+}
+
+func (l_lexer *Lexer) skip_whitespace() {
+	for l_lexer.current_char == ' ' || l_lexer.current_char == '\t' || l_lexer.current_char == '\n' || l_lexer.current_char == '\r' {
+		l_lexer.read_char()
+	}
+}
+
+func (l_lexer *Lexer) read_number() string {
+	position := l_lexer.position
+	for is_digit(l_lexer.current_char) {
+		l_lexer.read_char()
+	}
+	return l_lexer.input[position:l_lexer.position]
+}
+
+func is_digit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
 }
