@@ -33,7 +33,7 @@ func (l_parser *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
 
-	for l_parser.current_token.Type != token.EOF {
+	for !l_parser.current_token_is(token.EOF){
 		statement := l_parser.parse_statement()
 		if statement != nil {
 			program.Statements = append(program.Statements, statement)
