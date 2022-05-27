@@ -33,7 +33,7 @@ func (l_parser *Parser) ParseProgram() *ast.Program {
 	program := &ast.Program{}
 	program.Statements = []ast.Statement{}
 
-	for !l_parser.current_token_is(token.EOF){
+	for !l_parser.current_token_is(token.EOF) {
 		statement := l_parser.parse_statement()
 		if statement != nil {
 			program.Statements = append(program.Statements, statement)
@@ -52,6 +52,8 @@ func (l_parser *Parser) parse_statement() ast.Statement {
 	switch l_parser.current_token.Type {
 	case token.LET:
 		return l_parser.parse_let_statement()
+	case token.RETURN:
+		return l_parser.parse_return_statement()
 	default:
 		return nil
 	}
@@ -69,6 +71,17 @@ func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
 	}
 
 	// TODO(tijani): Skipping the expressins until there is a semicolon
+	for !l_parser.current_token_is(token.SEMICOLON) {
+		l_parser.next_token()
+	}
+	return statement
+}
+
+func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
+	statement := &ast.ReturnStatement{Token: l_parser.current_token}
+	l_parser.next_token()
+
+	// TODO(tijani): Skipping the expression until there is semicolon
 	for !l_parser.current_token_is(token.SEMICOLON) {
 		l_parser.next_token()
 	}
