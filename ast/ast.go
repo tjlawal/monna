@@ -53,6 +53,11 @@ type ExpressionStatement struct {
 	Expression Expression
 }
 
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
 // Let Statements
 func (ls *LetStatement) statement_node() {}
 
@@ -122,4 +127,15 @@ func (es *ExpressionStatement) String() string {
 		return es.Expression.String()
 	}
 	return ""
+}
+
+// IntegerLiteral
+func (il *IntegerLiteral) expression_node() {}
+
+func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.Literal
+}
+
+func (il *IntegerLiteral) String() string {
+	return il.Token.Literal
 }
