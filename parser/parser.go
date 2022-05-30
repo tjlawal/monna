@@ -5,6 +5,25 @@ import (
 	"monkey/ast"
 	"monkey/lexer"
 	"monkey/token"
+	"strconv"
+)
+
+// PRECEDENCE of operations
+const (
+	_ int = iota // iota means start from 0, hence _ starts from 0
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // > OR <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -x OR !x
+	CALL        // simple_function(x)
+)
+
+// Pratt Parsing
+type (
+	prefix_parse_function func() ast.Expression
+	infix_parse_function  func(ast.Expression) ast.Expression
 )
 
 type Parser struct {
@@ -13,6 +32,9 @@ type Parser struct {
 	peek_token    token.Token
 
 	errors []string
+
+	prefix_parse_functions map[token.TokenType]prefix_parse_function
+	infix_parse_functions  map[token.TokenType]infix_parse_function
 }
 
 func New(l_lexer *lexer.Lexer) *Parser {
@@ -21,6 +43,10 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	// Read two tokens so current_token and peek_token are both set
 	l_parser.next_token()
 	l_parser.next_token()
+
+	l_parser.prefix_parse_functions = make(map[token.TokenType]prefix_parse_function)
+	l_parser.register_prefix(token.IDENT, l_parser.parse_identifier)
+	l_parser.register_prefix(token.INT, l_parser.parse_integer_literal)
 
 	return l_parser
 }
@@ -43,6 +69,18 @@ func (l_parser *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
+func (l_parser *Parser) register_prefix(l_token_type token.TokenType, l_function prefix_parse_function) {
+	l_parser.prefix_parse_functions[l_token_type] = l_function
+}
+
+func (l_parser *Parser) parse_identifier() ast.Expression {
+	return &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
+}
+
+func (l_parser *Parser) register_infix(l_token_type token.TokenType, l_function infix_parse_function) {
+	l_parser.infix_parse_functions[l_token_type] = l_function
+}
+
 func (l_parser *Parser) next_token() {
 	l_parser.current_token = l_parser.peek_token
 	l_parser.peek_token = l_parser.lexer.NextToken()
@@ -55,7 +93,7 @@ func (l_parser *Parser) parse_statement() ast.Statement {
 	case token.RETURN:
 		return l_parser.parse_return_statement()
 	default:
-		return nil
+		return l_parser.parse_expression_statement()
 	}
 }
 
@@ -86,6 +124,36 @@ func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
 		l_parser.next_token()
 	}
 	return statement
+}
+
+func (l_parser *Parser) parse_expression_statement() *ast.ExpressionStatement {
+	statement := &ast.ExpressionStatement{Token: l_parser.current_token}
+	statement.Expression = l_parser.parse_expression(LOWEST)
+	if l_parser.peek_token_is(token.SEMICOLON) {
+		l_parser.next_token()
+	}
+	return statement
+}
+
+func (l_parser *Parser) parse_integer_literal() ast.Expression {
+	literal := &ast.IntegerLiteral{Token: l_parser.current_token}
+	value, error := strconv.ParseInt(l_parser.current_token.Literal, 0, 64)
+	if error != nil {
+		message := fmt.Sprintf("could not parse %q as integer", l_parser.current_token.Literal)
+		l_parser.errors = append(l_parser.errors, message)
+		return nil
+	}
+	literal.Value = value
+	return literal
+}
+
+func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
+	prefix := l_parser.prefix_parse_functions[l_parser.current_token.Type]
+	if prefix == nil {
+		return nil
+	}
+	left_expression := prefix()
+	return left_expression
 }
 
 func (l_parser *Parser) expect_peek(l_token token.TokenType) bool {
