@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-// PRECEDENCE of operations
+// Precedence of operations
 const (
 	_ int = iota // iota means start from 0, hence _ starts from 0
 	LOWEST
@@ -19,6 +19,32 @@ const (
 	PREFIX      // -x OR !x
 	CALL        // simple_function(x)
 )
+
+// Precedence Table
+var precedences = map[token.TokenType]int{
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
+	token.ASTERISK: PRODUCT,
+}
+
+func (l_parser *Parser) peek_precedence() int {
+	if l_parser, ok := precedences[l_parser.peek_token.Type]; ok {
+		return l_parser
+	}
+	return LOWEST
+}
+
+func (l_parser *Parser) current_precedence() int {
+	if l_parser, ok := precedences[l_parser.current_token.Type]; ok {
+		return l_parser
+	}
+	return LOWEST
+}
 
 // Pratt Parsing
 type (
@@ -44,11 +70,23 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	l_parser.next_token()
 	l_parser.next_token()
 
+	// Prefix Operations
 	l_parser.prefix_parse_functions = make(map[token.TokenType]prefix_parse_function)
 	l_parser.register_prefix(token.IDENT, l_parser.parse_identifier)
 	l_parser.register_prefix(token.INT, l_parser.parse_integer_literal)
 	l_parser.register_prefix(token.BANG, l_parser.parse_prefix_expression)
 	l_parser.register_prefix(token.MINUS, l_parser.parse_prefix_expression)
+
+	// Infix Operation
+	l_parser.infix_parse_functions = make(map[token.TokenType]infix_parse_function)
+	l_parser.register_infix(token.PLUS, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.MINUS, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.SLASH, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.ASTERISK, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.EQ, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.NOT_EQ, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.LT, l_parser.parse_infix_expression)
+	l_parser.register_infix(token.GT, l_parser.parse_infix_expression)
 
 	return l_parser
 }
@@ -172,6 +210,7 @@ func (l_parser *Parser) parse_integer_literal() ast.Expression {
 	return literal
 }
 
+// Here lies the heart of Pratt Parsing
 func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
 	prefix := l_parser.prefix_parse_functions[l_parser.current_token.Type]
 	if prefix == nil {
@@ -179,6 +218,16 @@ func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
 		return nil
 	}
 	left_expression := prefix()
+
+	for !l_parser.peek_token_is(token.SEMICOLON) && precedence < l_parser.peek_precedence() {
+		infix := l_parser.infix_parse_functions[l_parser.peek_token.Type]
+		if infix == nil {
+			return left_expression
+		}
+		l_parser.next_token()
+		left_expression = infix(left_expression)
+	}
+
 	return left_expression
 }
 
@@ -194,5 +243,18 @@ func (l_parser *Parser) parse_prefix_expression() ast.Expression {
 	}
 	l_parser.next_token()
 	expression.Right = l_parser.parse_expression(PREFIX)
+	return expression
+}
+
+func (l_parser *Parser) parse_infix_expression(left ast.Expression) ast.Expression {
+	expression := &ast.InfixExpression{
+		Token:    l_parser.current_token,
+		Operator: l_parser.current_token.Literal,
+		Left:     left,
+	}
+	precedence := l_parser.current_precedence()
+	l_parser.next_token()
+	expression.Right = l_parser.parse_expression(precedence)
+
 	return expression
 }
