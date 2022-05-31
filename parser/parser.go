@@ -47,6 +47,8 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	l_parser.prefix_parse_functions = make(map[token.TokenType]prefix_parse_function)
 	l_parser.register_prefix(token.IDENT, l_parser.parse_identifier)
 	l_parser.register_prefix(token.INT, l_parser.parse_integer_literal)
+	l_parser.register_prefix(token.BANG, l_parser.parse_prefix_expression)
+	l_parser.register_prefix(token.MINUS, l_parser.parse_prefix_expression)
 
 	return l_parser
 }
@@ -69,21 +71,32 @@ func (l_parser *Parser) ParseProgram() *ast.Program {
 	return program
 }
 
-func (l_parser *Parser) register_prefix(l_token_type token.TokenType, l_function prefix_parse_function) {
-	l_parser.prefix_parse_functions[l_token_type] = l_function
+func (l_parser *Parser) peek_error(l_token token.TokenType) {
+	message := fmt.Sprintf("expected next token to be %s, got %s", l_token, l_parser.peek_token.Type)
+	l_parser.errors = append(l_parser.errors, message)
 }
 
-func (l_parser *Parser) parse_identifier() ast.Expression {
-	return &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
+func (l_parser *Parser) current_token_is(l_token token.TokenType) bool {
+	return l_parser.current_token.Type == l_token
 }
 
-func (l_parser *Parser) register_infix(l_token_type token.TokenType, l_function infix_parse_function) {
-	l_parser.infix_parse_functions[l_token_type] = l_function
+func (l_parser *Parser) peek_token_is(l_token token.TokenType) bool {
+	return l_parser.peek_token.Type == l_token
 }
 
 func (l_parser *Parser) next_token() {
 	l_parser.current_token = l_parser.peek_token
 	l_parser.peek_token = l_parser.lexer.NextToken()
+}
+
+func (l_parser *Parser) expect_peek(l_token token.TokenType) bool {
+	if l_parser.peek_token_is(l_token) {
+		l_parser.next_token()
+		return true
+	} else {
+		l_parser.peek_error(l_token)
+		return false
+	}
 }
 
 func (l_parser *Parser) parse_statement() ast.Statement {
@@ -135,6 +148,18 @@ func (l_parser *Parser) parse_expression_statement() *ast.ExpressionStatement {
 	return statement
 }
 
+func (l_parser *Parser) register_prefix(l_token_type token.TokenType, l_function prefix_parse_function) {
+	l_parser.prefix_parse_functions[l_token_type] = l_function
+}
+
+func (l_parser *Parser) parse_identifier() ast.Expression {
+	return &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
+}
+
+func (l_parser *Parser) register_infix(l_token_type token.TokenType, l_function infix_parse_function) {
+	l_parser.infix_parse_functions[l_token_type] = l_function
+}
+
 func (l_parser *Parser) parse_integer_literal() ast.Expression {
 	literal := &ast.IntegerLiteral{Token: l_parser.current_token}
 	value, error := strconv.ParseInt(l_parser.current_token.Literal, 0, 64)
@@ -150,31 +175,24 @@ func (l_parser *Parser) parse_integer_literal() ast.Expression {
 func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
 	prefix := l_parser.prefix_parse_functions[l_parser.current_token.Type]
 	if prefix == nil {
+		l_parser.no_prefix_parse_function_error(l_parser.current_token.Type)
 		return nil
 	}
 	left_expression := prefix()
 	return left_expression
 }
 
-func (l_parser *Parser) expect_peek(l_token token.TokenType) bool {
-	if l_parser.peek_token_is(l_token) {
-		l_parser.next_token()
-		return true
-	} else {
-		l_parser.peek_error(l_token)
-		return false
-	}
-}
-
-func (l_parser *Parser) peek_error(l_token token.TokenType) {
-	message := fmt.Sprintf("expected next token to be %s, got %s", l_token, l_parser.peek_token.Type)
+func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenType) {
+	message := fmt.Sprintf("no prefix parse function for %s, found", l_token_type)
 	l_parser.errors = append(l_parser.errors, message)
 }
 
-func (l_parser *Parser) current_token_is(l_token token.TokenType) bool {
-	return l_parser.current_token.Type == l_token
-}
-
-func (l_parser *Parser) peek_token_is(l_token token.TokenType) bool {
-	return l_parser.peek_token.Type == l_token
+func (l_parser *Parser) parse_prefix_expression() ast.Expression {
+	expression := &ast.PrefixExpression{
+		Token:    l_parser.current_token,
+		Operator: l_parser.current_token.Literal,
+	}
+	l_parser.next_token()
+	expression.Right = l_parser.parse_expression(PREFIX)
+	return expression
 }
