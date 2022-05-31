@@ -52,6 +52,14 @@ type (
 	infix_parse_function  func(ast.Expression) ast.Expression
 )
 
+func (l_parser *Parser) register_prefix(l_token_type token.TokenType, l_function prefix_parse_function) {
+	l_parser.prefix_parse_functions[l_token_type] = l_function
+}
+
+func (l_parser *Parser) register_infix(l_token_type token.TokenType, l_function infix_parse_function) {
+	l_parser.infix_parse_functions[l_token_type] = l_function
+}
+
 type Parser struct {
 	lexer         *lexer.Lexer
 	current_token token.Token
@@ -149,6 +157,7 @@ func (l_parser *Parser) parse_statement() ast.Statement {
 }
 
 func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
+	defer untrace(trace("parse_let_statement"))
 	statement := &ast.LetStatement{Token: l_parser.current_token}
 	if !l_parser.expect_peek(token.IDENT) {
 		return nil
@@ -167,6 +176,7 @@ func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
 }
 
 func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
+	defer untrace(trace("parse_return_statement"))
 	statement := &ast.ReturnStatement{Token: l_parser.current_token}
 	l_parser.next_token()
 
@@ -178,6 +188,7 @@ func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
 }
 
 func (l_parser *Parser) parse_expression_statement() *ast.ExpressionStatement {
+	defer untrace(trace("parse_expression_statement"))
 	statement := &ast.ExpressionStatement{Token: l_parser.current_token}
 	statement.Expression = l_parser.parse_expression(LOWEST)
 	if l_parser.peek_token_is(token.SEMICOLON) {
@@ -186,19 +197,13 @@ func (l_parser *Parser) parse_expression_statement() *ast.ExpressionStatement {
 	return statement
 }
 
-func (l_parser *Parser) register_prefix(l_token_type token.TokenType, l_function prefix_parse_function) {
-	l_parser.prefix_parse_functions[l_token_type] = l_function
-}
-
 func (l_parser *Parser) parse_identifier() ast.Expression {
+	defer untrace(trace("parse_identifier"))
 	return &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
 }
 
-func (l_parser *Parser) register_infix(l_token_type token.TokenType, l_function infix_parse_function) {
-	l_parser.infix_parse_functions[l_token_type] = l_function
-}
-
 func (l_parser *Parser) parse_integer_literal() ast.Expression {
+	defer untrace(trace("parse_integer_literal"))
 	literal := &ast.IntegerLiteral{Token: l_parser.current_token}
 	value, error := strconv.ParseInt(l_parser.current_token.Literal, 0, 64)
 	if error != nil {
@@ -212,6 +217,7 @@ func (l_parser *Parser) parse_integer_literal() ast.Expression {
 
 // Here lies the heart of Pratt Parsing
 func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
+	defer untrace(trace("parse_expression"))
 	prefix := l_parser.prefix_parse_functions[l_parser.current_token.Type]
 	if prefix == nil {
 		l_parser.no_prefix_parse_function_error(l_parser.current_token.Type)
@@ -231,12 +237,8 @@ func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
 	return left_expression
 }
 
-func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenType) {
-	message := fmt.Sprintf("no prefix parse function for %s, found", l_token_type)
-	l_parser.errors = append(l_parser.errors, message)
-}
-
 func (l_parser *Parser) parse_prefix_expression() ast.Expression {
+	defer untrace(trace("parse_prefix_expression"))
 	expression := &ast.PrefixExpression{
 		Token:    l_parser.current_token,
 		Operator: l_parser.current_token.Literal,
@@ -247,6 +249,7 @@ func (l_parser *Parser) parse_prefix_expression() ast.Expression {
 }
 
 func (l_parser *Parser) parse_infix_expression(left ast.Expression) ast.Expression {
+	defer untrace(trace("parse_prefix_expression"))
 	expression := &ast.InfixExpression{
 		Token:    l_parser.current_token,
 		Operator: l_parser.current_token.Literal,
@@ -257,4 +260,9 @@ func (l_parser *Parser) parse_infix_expression(left ast.Expression) ast.Expressi
 	expression.Right = l_parser.parse_expression(precedence)
 
 	return expression
+}
+
+func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenType) {
+	message := fmt.Sprintf("no prefix parse function for %s, found", l_token_type)
+	l_parser.errors = append(l_parser.errors, message)
 }
