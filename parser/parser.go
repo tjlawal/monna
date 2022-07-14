@@ -96,6 +96,10 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	l_parser.register_infix(token.LT, l_parser.parse_infix_expression)
 	l_parser.register_infix(token.GT, l_parser.parse_infix_expression)
 
+	// Boolean
+	l_parser.register_prefix(token.TRUE, l_parser.parse_boolean)
+	l_parser.register_prefix(token.FALSE, l_parser.parse_boolean)
+
 	return l_parser
 }
 
@@ -265,4 +269,13 @@ func (l_parser *Parser) parse_infix_expression(left ast.Expression) ast.Expressi
 func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenType) {
 	message := fmt.Sprintf("no prefix parse function for %s, found", l_token_type)
 	l_parser.errors = append(l_parser.errors, message)
+}
+
+
+func (l_parser *Parser) parse_boolean() ast.Expression {
+	defer untrace(trace("parse_boolean"))
+	return &ast.Boolean{
+		Token: l_parser.current_token,
+		Value: l_parser.current_token_is(token.TRUE),
+	}
 }

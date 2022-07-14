@@ -210,7 +210,7 @@ func TestParsingInfixExpressions(l_test *testing.T) {
 			l_test.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got=%T", program.Statements[0])
 		}
 
-		if !testInfixExpression(l_test, statement.Expression, tt.left_value, tt.operator, tt.right_value){
+		if !testInfixExpression(l_test, statement.Expression, tt.left_value, tt.operator, tt.right_value) {
 			return
 		}
 	}
@@ -279,6 +279,41 @@ func TestOperatorPrecedenceParsing(l_test *testing.T) {
 		actual := program.String()
 		if actual != tt.expected {
 			l_test.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
+func TestBooleanExpression(l_test *testing.T) {
+	tests := []struct {
+		input            string
+		expected_boolean bool
+	}{
+		{"true;", true},
+		{"false;", false},
+	}
+
+	for _, tt := range tests {
+		l_lexer := lexer.New(tt.input)
+		l_parser := New(l_lexer)
+
+		program := l_parser.ParseProgram()
+		check_parser_errors(l_test, l_parser)
+
+		if len(program.Statements) != 1 {
+			l_test.Fatalf("program.Statements does not have enough statements, got=%d", len(program.Statements))
+		}
+
+		statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			l_test.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got=%T", program.Statements[0])
+		}
+
+		boolean, ok := statement.Expression.(*ast.Boolean)
+		if !ok {
+			l_test.Fatalf("exp not *ast.Boolean, got=%T", statement.Expression)
+		}
+		if boolean.Value != tt.expected_boolean {
+			l_test.Errorf("boolean.Value not %t, got=%t", tt.expected_boolean, boolean.Value)
 		}
 	}
 }
@@ -377,14 +412,14 @@ func testLiteralExpression(l_test *testing.T, exp ast.Expression, expected inter
 	return false
 }
 
-func testInfixExpression(l_test *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) bool{
+func testInfixExpression(l_test *testing.T, exp ast.Expression, left interface{}, operator string, right interface{}) bool {
 	operator_expression, ok := exp.(*ast.InfixExpression)
 	if !ok {
 		l_test.Errorf("exp is not ast.InfixExpression, got=%T(%s)", exp, exp)
 		return false
 	}
 
-	if !testLiteralExpression(l_test, operator_expression.Left, left){
+	if !testLiteralExpression(l_test, operator_expression.Left, left) {
 		return false
 	}
 
@@ -393,7 +428,7 @@ func testInfixExpression(l_test *testing.T, exp ast.Expression, left interface{}
 		return false
 	}
 
-	if !testLiteralExpression(l_test, operator_expression.Right, right){
+	if !testLiteralExpression(l_test, operator_expression.Right, right) {
 		return false
 	}
 	return true
