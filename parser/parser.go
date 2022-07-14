@@ -271,7 +271,6 @@ func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenT
 	l_parser.errors = append(l_parser.errors, message)
 }
 
-
 func (l_parser *Parser) parse_boolean() ast.Expression {
 	defer untrace(trace("parse_boolean"))
 	return &ast.Boolean{
