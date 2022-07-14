@@ -100,6 +100,9 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	l_parser.register_prefix(token.TRUE, l_parser.parse_boolean)
 	l_parser.register_prefix(token.FALSE, l_parser.parse_boolean)
 
+	// Grouped Expression
+	l_parser.register_prefix(token.LPAREN, l_parser.parse_grouped_expression)
+	
 	return l_parser
 }
 
@@ -277,4 +280,13 @@ func (l_parser *Parser) parse_boolean() ast.Expression {
 		Token: l_parser.current_token,
 		Value: l_parser.current_token_is(token.TRUE),
 	}
+}
+
+func (l_parser *Parser) parse_grouped_expression() ast.Expression{
+	l_parser.next_token()
+	expression := l_parser.parse_expression(LOWEST)
+	if !l_parser.expect_peek(token.RPAREN){
+		return nil
+	}
+	return expression
 }
