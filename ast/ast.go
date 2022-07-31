@@ -244,13 +244,13 @@ type FunctionLiteral struct {
 	Body       *BlockStatement
 }
 
-func (fl *FunctionLiteral) expression_node() {}
+func (fl *FunctionLiteral) expression_node()     {}
 func (fl *FunctionLiteral) TokenLiteral() string { return fl.Token.Literal }
 func (fl *FunctionLiteral) String() string {
 	var out bytes.Buffer
 
 	params := []string{}
-	for _, p := range fl.Parameters{
+	for _, p := range fl.Parameters {
 		params = append(params, p.String())
 	}
 	out.WriteString(fl.TokenLiteral())
