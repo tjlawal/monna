@@ -102,7 +102,10 @@ func New(l_lexer *lexer.Lexer) *Parser {
 
 	// Grouped Expression
 	l_parser.register_prefix(token.LPAREN, l_parser.parse_grouped_expression)
-	
+
+	// IF Expression
+	l_parser.register_prefix(token.IF, l_parser.parse_if_expression)
+
 	return l_parser
 }
 
@@ -282,11 +285,62 @@ func (l_parser *Parser) parse_boolean() ast.Expression {
 	}
 }
 
-func (l_parser *Parser) parse_grouped_expression() ast.Expression{
+func (l_parser *Parser) parse_grouped_expression() ast.Expression {
+	defer untrace(trace("parse_grouped_expression"))
 	l_parser.next_token()
 	expression := l_parser.parse_expression(LOWEST)
-	if !l_parser.expect_peek(token.RPAREN){
+	if !l_parser.expect_peek(token.RPAREN) {
 		return nil
 	}
 	return expression
+}
+
+func (l_parser *Parser) parse_if_expression() ast.Expression {
+	defer untrace(trace("parse_if_expression"))
+	expression := &ast.IfExpression{
+		Token: l_parser.current_token,
+	}
+
+	if !l_parser.expect_peek(token.LPAREN) {
+		return nil
+	}
+
+	l_parser.next_token()
+	expression.Condition = l_parser.parse_expression(LOWEST)
+
+	if !l_parser.expect_peek(token.RPAREN) {
+		return nil
+	}
+
+	if !l_parser.expect_peek(token.LBRACE) {
+		return nil
+	}
+
+	expression.Consequence = l_parser.parse_block_statement()
+
+	if l_parser.peek_token_is(token.ELSE) {
+		l_parser.next_token()
+		if !l_parser.expect_peek(token.LBRACE) {
+			return nil
+		}
+		expression.Alternative = l_parser.parse_block_statement()
+	}
+
+	return expression
+}
+
+func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: l_parser.current_token}
+	block.Statements = []ast.Statement{}
+
+	l_parser.next_token()
+
+	for !l_parser.current_token_is(token.RBRACE) && !l_parser.current_token_is(token.EOF) {
+		statement := l_parser.parse_statement()
+		if statement != nil {
+			block.Statements = append(block.Statements, statement)
+		}
+		l_parser.next_token()
+	}
+	return block
 }
