@@ -106,6 +106,9 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	// IF Expression
 	l_parser.register_prefix(token.IF, l_parser.parse_if_expression)
 
+	// Function Literals
+	l_parser.register_prefix(token.FUNCTION, l_parser.parse_function_literal)
+
 	return l_parser
 }
 
@@ -343,4 +346,43 @@ func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
 		l_parser.next_token()
 	}
 	return block
+}
+
+func (l_parser *Parser) parse_function_literal() ast.Expression {
+	literal := &ast.FunctionLiteral{ Token: l_parser.current_token }
+	if !l_parser.expect_peek(token.LPAREN) {
+		return nil
+	}
+
+	literal.Parameters = l_parser.parse_function_parameters()
+	if !l_parser.expect_peek(token.LBRACE) {
+		return nil
+	}
+	literal.Body = l_parser.parse_block_statement()
+	return literal
+}
+
+func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
+	identifiers := []*ast.Identifier{}
+
+	if l_parser.peek_token_is(token.RPAREN) {
+		l_parser.next_token()
+		return identifiers
+	}
+
+	l_parser.next_token()
+
+	ident := &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
+	identifiers = append(identifiers, ident)
+
+	for l_parser.peek_token_is(token.COMMA) {
+		l_parser.next_token()
+		l_parser.next_token()
+		ident := &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
+		identifiers = append(identifiers, ident)
+	}
+	if !l_parser.expect_peek(token.RPAREN) {
+		return nil
+	}
+	return identifiers
 }
