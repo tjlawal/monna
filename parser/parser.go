@@ -343,6 +343,7 @@ func (l_parser *Parser) parse_if_expression() ast.Expression {
 }
 
 func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
+	defer untrace(trace("parse_block_statement"))
 	block := &ast.BlockStatement{Token: l_parser.current_token}
 	block.Statements = []ast.Statement{}
 
@@ -359,6 +360,7 @@ func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
 }
 
 func (l_parser *Parser) parse_function_literal() ast.Expression {
+	defer untrace(trace("parse_function_literal"))
 	literal := &ast.FunctionLiteral{Token: l_parser.current_token}
 	if !l_parser.expect_peek(token.LPAREN) {
 		return nil
@@ -374,6 +376,7 @@ func (l_parser *Parser) parse_function_literal() ast.Expression {
 }
 
 func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
+	defer untrace(trace("parse_function_parameters"))
 	identifiers := []*ast.Identifier{}
 
 	if l_parser.peek_token_is(token.RPAREN) {
@@ -399,12 +402,14 @@ func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
 }
 
 func (l_parser *Parser) parse_call_expression(function ast.Expression) ast.Expression {
+	defer untrace(trace("parse_call_expression"))
 	expression := &ast.CallExpression{Token: l_parser.current_token, Function: function}
 	expression.Arguments = l_parser.parse_call_arguments()
 	return expression
 }
 
 func (l_parser *Parser) parse_call_arguments() []ast.Expression {
+	defer untrace(trace("parse_call_arguments"))
 	args := []ast.Expression{}
 
 	if l_parser.peek_token_is(token.RPAREN) {
