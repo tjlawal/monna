@@ -310,6 +310,18 @@ func TestOperatorPrecedenceParsing(l_test *testing.T) {
 			"!(true == true)",
 			"(!(true == true))",
 		},
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
+		{
+			"add(a + b + c * d / f + g)",
+			"add((((a + b) + ((c * d) / f)) + g))",
+		},
 	}
 	for _, tt := range tests {
 		l_lexer := lexer.New(tt.input)
@@ -493,14 +505,14 @@ func TestFunctionLiteralParsing(l_test *testing.T) {
 
 }
 
-func TestFunctionParameterParsing(l_test *testing.T){
+func TestFunctionParameterParsing(l_test *testing.T) {
 	tests := []struct {
-		input string
+		input           string
 		expected_params []string
 	}{
-		{ input: "fn() {};", expected_params: []string{}},
-		{ input: "fn(x) {};", expected_params: []string{"x"}},
-		{ input: "fn(x, y, z) {};", expected_params: []string{"x", "y", "z"}},
+		{input: "fn() {};", expected_params: []string{}},
+		{input: "fn(x) {};", expected_params: []string{"x"}},
+		{input: "fn(x, y, z) {};", expected_params: []string{"x", "y", "z"}},
 	}
 
 	for _, tt := range tests {
@@ -512,13 +524,102 @@ func TestFunctionParameterParsing(l_test *testing.T){
 		statement := program.Statements[0].(*ast.ExpressionStatement)
 		function := statement.Expression.(*ast.FunctionLiteral)
 
-		if len(function.Parameters) != len(tt.expected_params){
+		if len(function.Parameters) != len(tt.expected_params) {
 			l_test.Errorf("length of parameters is wrong, want %d, got=%d\n",
 				len(tt.expected_params), len(function.Parameters))
 		}
 
 		for i, identifier := range tt.expected_params {
 			testLiteralExpression(l_test, function.Parameters[i], identifier)
+		}
+	}
+}
+
+func TestCallExpressionParsing(l_test *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+
+	l_lexer := lexer.New(input)
+	l_parser := New(l_lexer)
+	program := l_parser.ParseProgram()
+	check_parser_errors(l_test, l_parser)
+
+	if len(program.Statements) != 1 {
+		l_test.Fatalf("program.Statements does not contain %d statements, got=%d\n", 1, len(program.Statements))
+	}
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		l_test.Fatalf("statement is not ast.ExpressionStatement, got=%T", program.Statements[0])
+	}
+
+	expression, ok := statement.Expression.(*ast.CallExpression)
+	if !ok {
+		l_test.Fatalf("statemnt.Expression is not ast.CallExpression, got=%T", statement.Expression)
+	}
+
+	if !testIdentifier(l_test, expression.Function, "add") {
+		return
+	}
+
+	if len(expression.Arguments) != 3 {
+		l_test.Fatalf("wrong length of arguments, got=%d", len(expression.Arguments))
+	}
+
+	testLiteralExpression(l_test, expression.Arguments[0], 1)
+	testInfixExpression(l_test, expression.Arguments[1], 2, "*", 3)
+	testInfixExpression(l_test, expression.Arguments[2], 4, "+", 5)
+}
+
+func TestCallExpressionParameterParsing(l_test *testing.T) {
+	tests := []struct {
+		input          string
+		expected_ident string
+		expected_args  []string
+	}{
+		{
+			input:          "add();",
+			expected_ident: "add",
+			expected_args:  []string{},
+		},
+		{
+			input:          "add(1);",
+			expected_ident: "add",
+			expected_args:  []string{"1"},
+		},
+		{
+			input:          "add(1, 2 * 3, 4 + 5);",
+			expected_ident: "add",
+			expected_args:  []string{"1", "(2 * 3)", "(4 + 5)"},
+		},
+	}
+
+	for _, tt := range tests {
+		l_lexer := lexer.New(tt.input)
+		l_parser := New(l_lexer)
+		program := l_parser.ParseProgram()
+		check_parser_errors(l_test, l_parser)
+
+		statement := program.Statements[0].(*ast.ExpressionStatement)
+		expression, ok := statement.Expression.(*ast.CallExpression)
+		if !ok {
+			l_test.Fatalf("statement.Expression is not ast.CallExpression, got=%T",
+				statement.Expression)
+		}
+
+		if !testIdentifier(l_test, expression.Function, tt.expected_ident) {
+			return
+		}
+
+		if len(expression.Arguments) != len(tt.expected_args) {
+			l_test.Fatalf("wrong number of arguments, want=%d, got=%d",
+				len(tt.expected_args), len(expression.Arguments))
+		}
+
+		for i, arg := range tt.expected_args {
+			if expression.Arguments[i].String() != arg {
+				l_test.Errorf("argument %d wrong. want=%q, got=%q", i,
+					arg, expression.Arguments[i].String())
+			}
 		}
 	}
 }

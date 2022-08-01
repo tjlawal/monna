@@ -30,6 +30,7 @@ var precedences = map[token.TokenType]int{
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
+	token.LPAREN:   CALL,
 }
 
 func (l_parser *Parser) peek_precedence() int {
@@ -108,6 +109,9 @@ func New(l_lexer *lexer.Lexer) *Parser {
 
 	// Function Literals
 	l_parser.register_prefix(token.FUNCTION, l_parser.parse_function_literal)
+
+	// Call Expression
+	l_parser.register_infix(token.LPAREN, l_parser.parse_call_expression)
 
 	return l_parser
 }
@@ -349,7 +353,7 @@ func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
 }
 
 func (l_parser *Parser) parse_function_literal() ast.Expression {
-	literal := &ast.FunctionLiteral{ Token: l_parser.current_token }
+	literal := &ast.FunctionLiteral{Token: l_parser.current_token}
 	if !l_parser.expect_peek(token.LPAREN) {
 		return nil
 	}
@@ -358,6 +362,7 @@ func (l_parser *Parser) parse_function_literal() ast.Expression {
 	if !l_parser.expect_peek(token.LBRACE) {
 		return nil
 	}
+
 	literal.Body = l_parser.parse_block_statement()
 	return literal
 }
@@ -385,4 +390,33 @@ func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
 		return nil
 	}
 	return identifiers
+}
+
+func (l_parser *Parser) parse_call_expression(function ast.Expression) ast.Expression {
+	expression := &ast.CallExpression{Token: l_parser.current_token, Function: function}
+	expression.Arguments = l_parser.parse_call_arguments()
+	return expression
+}
+
+func (l_parser *Parser) parse_call_arguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if l_parser.peek_token_is(token.RPAREN) {
+		l_parser.next_token()
+		return args
+	}
+
+	l_parser.next_token()
+	args = append(args, l_parser.parse_expression(LOWEST))
+
+	for l_parser.peek_token_is(token.COMMA) {
+		l_parser.next_token()
+		l_parser.next_token()
+		args = append(args, l_parser.parse_expression(LOWEST))
+	}
+
+	if !l_parser.expect_peek(token.RPAREN) {
+		return nil
+	}
+	return args
 }
