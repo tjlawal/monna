@@ -647,12 +647,12 @@ func TestLetStatements(l_test *testing.T) {
 		}
 
 		statement := program.Statements[0]
-		if !testLetStatement(l_test, statement, tt.expected_identifier){
+		if !testLetStatement(l_test, statement, tt.expected_identifier) {
 			return
 		}
 
 		val := statement.(*ast.LetStatement).Value
-		if !testLiteralExpression(l_test, val, tt.expected_value){
+		if !testLiteralExpression(l_test, val, tt.expected_value) {
 			return
 		}
 	}
