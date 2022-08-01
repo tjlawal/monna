@@ -175,18 +175,22 @@ func (l_parser *Parser) parse_statement() ast.Statement {
 
 func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
 	defer untrace(trace("parse_let_statement"))
-	statement := &ast.LetStatement{Token: l_parser.current_token}
-	if !l_parser.expect_peek(token.IDENT) {
+
+	statement := &ast.LetStatement{ Token: l_parser.current_token }
+
+	if !l_parser.expect_peek(token.IDENT){
 		return nil
 	}
 
-	statement.Name = &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
-	if !l_parser.expect_peek(token.ASSIGN) {
+	statement.Name = &ast.Identifier{ Token: l_parser.current_token, Value: l_parser.current_token.Literal }
+	if !l_parser.expect_peek(token.ASSIGN){
 		return nil
 	}
 
-	// TODO(tijani): Skipping the expressins until there is a semicolon
-	for !l_parser.current_token_is(token.SEMICOLON) {
+	l_parser.next_token()
+	statement.Value = l_parser.parse_expression(LOWEST)
+
+	if l_parser.peek_token_is(token.SEMICOLON){
 		l_parser.next_token()
 	}
 	return statement
@@ -194,11 +198,13 @@ func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
 
 func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
 	defer untrace(trace("parse_return_statement"))
+	
 	statement := &ast.ReturnStatement{Token: l_parser.current_token}
 	l_parser.next_token()
 
-	// TODO(tijani): Skipping the expression until there is semicolon
-	for !l_parser.current_token_is(token.SEMICOLON) {
+	statement.ReturnValue = l_parser.parse_expression(LOWEST)
+	
+	if l_parser.peek_token_is(token.SEMICOLON) {
 		l_parser.next_token()
 	}
 	return statement
