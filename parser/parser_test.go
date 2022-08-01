@@ -624,6 +624,40 @@ func TestCallExpressionParameterParsing(l_test *testing.T) {
 	}
 }
 
+func TestLetStatements(l_test *testing.T) {
+	tests := []struct {
+		input               string
+		expected_identifier string
+		expected_value      interface{}
+	}{
+		{"let x = 5;", "x", 5},
+		{"let y = true;", "y", true},
+		{"let foobar = y;", "foobar", "y"},
+	}
+
+	for _, tt := range tests {
+		l_lexer := lexer.New(tt.input)
+		l_parser := New(l_lexer)
+		program := l_parser.ParseProgram()
+		check_parser_errors(l_test, l_parser)
+
+		if len(program.Statements) != 1 {
+			l_test.Fatalf("program.Statements does not contain 1 statements, got=%d",
+				len(program.Statements))
+		}
+
+		statement := program.Statements[0]
+		if !testLetStatement(l_test, statement, tt.expected_identifier){
+			return
+		}
+
+		val := statement.(*ast.LetStatement).Value
+		if !testLiteralExpression(l_test, val, tt.expected_value){
+			return
+		}
+	}
+}
+
 // Helpers
 
 func check_parser_errors(l_test *testing.T, l_parser *Parser) {
