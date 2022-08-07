@@ -37,7 +37,7 @@ func (b *Boolean) Type() ObjectType {
 	return BOOLEAN_OBJECT
 }
 
-func (b *Boolean) Inpect() string {
+func (b *Boolean) Inspect() string {
 	return fmt.Sprintf("%t", b.Value)
 }
 
@@ -48,6 +48,6 @@ func (n *Null) Type() ObjectType {
 	return NULL_OBJECT
 }
 
-func (n *Null) Inpect() string {
+func (n *Null) Inspect() string {
 	return "null"
 }
