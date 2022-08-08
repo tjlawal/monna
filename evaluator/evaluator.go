@@ -5,9 +5,15 @@ import (
 	"monkey/object"
 )
 
+var (
+	NULL  = &object.Null{}
+	TRUE  = &object.Boolean{Value: true}
+	FALSE = &object.Boolean{Value: false}
+)
+
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
-  	// Statements
+	// Statements
 	case *ast.Program:
 		return eval_statements(node.Statements)
 
@@ -19,7 +25,12 @@ func Eval(node ast.Node) object.Object {
 		return &object.Integer{Value: node.Value}
 
 	case *ast.Boolean:
-		return &object.Boolean{Value: node.Value}
+		return native_bool_to_boolean_object(node.Value)
+
+	case *ast.PrefixExpression:
+		right := Eval(node.Right)
+		return eval_prefix_expression(node.Operator, right)
+
 	}
 
 	return nil
@@ -32,4 +43,37 @@ func eval_statements(statements []ast.Statement) object.Object {
 		result = Eval(statement)
 	}
 	return result
+}
+
+func native_bool_to_boolean_object(input bool) *object.Boolean {
+	if input {
+		return TRUE
+	}
+	return FALSE
+}
+
+func eval_prefix_expression(operator string, right object.Object) object.Object {
+	switch operator {
+	case "!":
+		return eval_bang_operator_expression(right)
+
+	default:
+		return NULL
+	}
+}
+
+func eval_bang_operator_expression(right object.Object) object.Object {
+	switch right {
+	case TRUE:
+		return FALSE
+
+	case FALSE:
+		return TRUE
+
+	case NULL:
+		return TRUE
+
+	default:
+		return FALSE
+	}
 }

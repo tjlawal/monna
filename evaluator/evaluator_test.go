@@ -22,21 +22,40 @@ func TestEvalIntegerExpression(l_test *testing.T) {
 	}
 }
 
-func TestEvalBooleanExpression(l_test *testing.T){
+func TestEvalBooleanExpression(l_test *testing.T) {
 	tests := []struct {
-		input string
+		input    string
 		expected bool
 	}{
 		{"true", true},
 		{"false", false},
 	}
 
-	for _, tt := range tests{
-			evaluated := test_eval(tt.input)
-			test_boolean_object(l_test, evaluated, tt.expected)
-		}
+	for _, tt := range tests {
+		evaluated := test_eval(tt.input)
+		test_boolean_object(l_test, evaluated, tt.expected)
+	}
+}
+
+// Test to convert the '!' operator to boolean value and negate it
+func TestBangOperator(l_test *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"!true", false},
+		{"!false", true},
+		{"!5", false},
+		{"!!true", true},
+		{"!!false", false},
+		{"!!5", true},
 	}
 
+	for _, tt := range tests {
+		evaluated := test_eval(tt.input)
+		test_boolean_object(l_test, evaluated, tt.expected)
+	}
+}
 
 // Helpers
 func test_eval(input string) object.Object {
@@ -60,7 +79,7 @@ func test_integer_object(l_test *testing.T, l_object object.Object, expected int
 	return true
 }
 
-func test_boolean_object(l_test *testing.T, l_object object.Object, expected bool)bool {
+func test_boolean_object(l_test *testing.T, l_object object.Object, expected bool) bool {
 	result, ok := l_object.(*object.Boolean)
 	if !ok {
 		l_test.Errorf("object is not Boolean, got=%T (%+v)", l_object, l_object)
