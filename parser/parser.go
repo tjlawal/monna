@@ -174,7 +174,7 @@ func (l_parser *Parser) parse_statement() ast.Statement {
 }
 
 func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
-	defer untrace(trace("parse_let_statement"))
+	//defer untrace(trace("parse_let_statement"))
 
 	statement := &ast.LetStatement{Token: l_parser.current_token}
 
@@ -197,7 +197,7 @@ func (l_parser *Parser) parse_let_statement() *ast.LetStatement {
 }
 
 func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
-	defer untrace(trace("parse_return_statement"))
+	//defer untrace(trace("parse_return_statement"))
 
 	statement := &ast.ReturnStatement{Token: l_parser.current_token}
 	l_parser.next_token()
@@ -211,7 +211,7 @@ func (l_parser *Parser) parse_return_statement() *ast.ReturnStatement {
 }
 
 func (l_parser *Parser) parse_expression_statement() *ast.ExpressionStatement {
-	defer untrace(trace("parse_expression_statement"))
+	//defer untrace(trace("parse_expression_statement"))
 	statement := &ast.ExpressionStatement{Token: l_parser.current_token}
 	statement.Expression = l_parser.parse_expression(LOWEST)
 	if l_parser.peek_token_is(token.SEMICOLON) {
@@ -221,12 +221,12 @@ func (l_parser *Parser) parse_expression_statement() *ast.ExpressionStatement {
 }
 
 func (l_parser *Parser) parse_identifier() ast.Expression {
-	defer untrace(trace("parse_identifier"))
+	//defer untrace(trace("parse_identifier"))
 	return &ast.Identifier{Token: l_parser.current_token, Value: l_parser.current_token.Literal}
 }
 
 func (l_parser *Parser) parse_integer_literal() ast.Expression {
-	defer untrace(trace("parse_integer_literal"))
+	//defer untrace(trace("parse_integer_literal"))
 	literal := &ast.IntegerLiteral{Token: l_parser.current_token}
 	value, error := strconv.ParseInt(l_parser.current_token.Literal, 0, 64)
 	if error != nil {
@@ -240,7 +240,7 @@ func (l_parser *Parser) parse_integer_literal() ast.Expression {
 
 // Here lies the heart of Pratt Parsing
 func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
-	defer untrace(trace("parse_expression"))
+	//defer untrace(trace("parse_expression"))
 	prefix := l_parser.prefix_parse_functions[l_parser.current_token.Type]
 	if prefix == nil {
 		l_parser.no_prefix_parse_function_error(l_parser.current_token.Type)
@@ -261,7 +261,7 @@ func (l_parser *Parser) parse_expression(precedence int) ast.Expression {
 }
 
 func (l_parser *Parser) parse_prefix_expression() ast.Expression {
-	defer untrace(trace("parse_prefix_expression"))
+	//defer untrace(trace("parse_prefix_expression"))
 	expression := &ast.PrefixExpression{
 		Token:    l_parser.current_token,
 		Operator: l_parser.current_token.Literal,
@@ -272,7 +272,7 @@ func (l_parser *Parser) parse_prefix_expression() ast.Expression {
 }
 
 func (l_parser *Parser) parse_infix_expression(left ast.Expression) ast.Expression {
-	defer untrace(trace("parse_prefix_expression"))
+	//defer untrace(trace("parse_prefix_expression"))
 	expression := &ast.InfixExpression{
 		Token:    l_parser.current_token,
 		Operator: l_parser.current_token.Literal,
@@ -291,7 +291,7 @@ func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenT
 }
 
 func (l_parser *Parser) parse_boolean() ast.Expression {
-	defer untrace(trace("parse_boolean"))
+	//	defer untrace(trace("parse_boolean"))
 	return &ast.Boolean{
 		Token: l_parser.current_token,
 		Value: l_parser.current_token_is(token.TRUE),
@@ -299,7 +299,7 @@ func (l_parser *Parser) parse_boolean() ast.Expression {
 }
 
 func (l_parser *Parser) parse_grouped_expression() ast.Expression {
-	defer untrace(trace("parse_grouped_expression"))
+	//defer untrace(trace("parse_grouped_expression"))
 	l_parser.next_token()
 	expression := l_parser.parse_expression(LOWEST)
 	if !l_parser.expect_peek(token.RPAREN) {
@@ -309,7 +309,7 @@ func (l_parser *Parser) parse_grouped_expression() ast.Expression {
 }
 
 func (l_parser *Parser) parse_if_expression() ast.Expression {
-	defer untrace(trace("parse_if_expression"))
+	//defer untrace(trace("parse_if_expression"))
 	expression := &ast.IfExpression{
 		Token: l_parser.current_token,
 	}
@@ -343,7 +343,7 @@ func (l_parser *Parser) parse_if_expression() ast.Expression {
 }
 
 func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
-	defer untrace(trace("parse_block_statement"))
+	//	defer untrace(trace("parse_block_statement"))
 	block := &ast.BlockStatement{Token: l_parser.current_token}
 	block.Statements = []ast.Statement{}
 
@@ -360,7 +360,7 @@ func (l_parser *Parser) parse_block_statement() *ast.BlockStatement {
 }
 
 func (l_parser *Parser) parse_function_literal() ast.Expression {
-	defer untrace(trace("parse_function_literal"))
+	//	defer untrace(trace("parse_function_literal"))
 	literal := &ast.FunctionLiteral{Token: l_parser.current_token}
 	if !l_parser.expect_peek(token.LPAREN) {
 		return nil
@@ -376,7 +376,7 @@ func (l_parser *Parser) parse_function_literal() ast.Expression {
 }
 
 func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
-	defer untrace(trace("parse_function_parameters"))
+	//	defer untrace(trace("parse_function_parameters"))
 	identifiers := []*ast.Identifier{}
 
 	if l_parser.peek_token_is(token.RPAREN) {
@@ -402,14 +402,14 @@ func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
 }
 
 func (l_parser *Parser) parse_call_expression(function ast.Expression) ast.Expression {
-	defer untrace(trace("parse_call_expression"))
+	//	defer untrace(trace("parse_call_expression"))
 	expression := &ast.CallExpression{Token: l_parser.current_token, Function: function}
 	expression.Arguments = l_parser.parse_call_arguments()
 	return expression
 }
 
 func (l_parser *Parser) parse_call_arguments() []ast.Expression {
-	defer untrace(trace("parse_call_arguments"))
+	//	defer untrace(trace("parse_call_arguments"))
 	args := []ast.Expression{}
 
 	if l_parser.peek_token_is(token.RPAREN) {
