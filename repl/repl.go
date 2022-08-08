@@ -4,9 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"monkey/evaluator"
 	"monkey/lexer"
 	"monkey/parser"
-	"monkey/evaluator"
 )
 
 const MONKEY_FACE = `            __,__
@@ -43,9 +43,9 @@ func Start(in io.Reader, out io.Writer) {
 			print_parser_errors(out, l_parser.Errors())
 			continue
 		}
-		
+
 		evaluated := evaluator.Eval(program)
-		if evaluated != nil{
+		if evaluated != nil {
 			io.WriteString(out, evaluated.Inspect())
 			io.WriteString(out, "\n")
 		}
