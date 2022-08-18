@@ -18,8 +18,24 @@ func Eval(node ast.Node) object.Object {
 	case *ast.Program:
 		return eval_program(node)
 
+	case *ast.BlockStatement:
+		return eval_block_statement(node)
+
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
+
+	case *ast.ReturnStatement:
+		val := Eval(node.ReturnValue)
+		if is_error(val) {
+			return val
+		}
+		return &object.ReturnValue{Value: val}
+
+	case *ast.LetStatement:
+		val := Eval(node.Value)
+		if is_error(val) {
+			return val
+		}
 
 		// Expressions
 	case *ast.IntegerLiteral:
@@ -30,35 +46,25 @@ func Eval(node ast.Node) object.Object {
 
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
-		if is_error(right){
+		if is_error(right) {
 			return right
 		}
 		return eval_prefix_expression(node.Operator, right)
 
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
-		if is_error(left){
+		if is_error(left) {
 			return left
 		}
-		
+
 		right := Eval(node.Right)
-		if is_error(right){
+		if is_error(right) {
 			return right
 		}
 		return eval_infix_expression(node.Operator, left, right)
 
-	case *ast.BlockStatement:
-		return eval_block_statement(node)
-
 	case *ast.IfExpression:
 		return eval_if_expression(node)
-
-	case *ast.ReturnStatement:
-		val := Eval(node.ReturnValue)
-		if is_error(val){
-			return val
-		}
-		return &object.ReturnValue{Value: val}
 	}
 
 	return nil
@@ -196,10 +202,10 @@ func eval_integer_infix_expression(operator string, left object.Object, right ob
 func eval_if_expression(ie *ast.IfExpression) object.Object {
 	condition := Eval(ie.Condition)
 
-	if is_error(condition){
+	if is_error(condition) {
 		return condition
 	}
-	
+
 	if is_truthy(condition) {
 		return Eval(ie.Consequence)
 	} else if ie.Alternative != nil {
