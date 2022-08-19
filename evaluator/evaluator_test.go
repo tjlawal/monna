@@ -168,22 +168,21 @@ func TestReturnStatements(l_test *testing.T) {
 	}
 }
 
-// func TestLetStatements(l_test *testing.T) {
-// 	tests := []struct {
-// 		input    string
-// 		expected int64
-// 	}{
-// 		{"let a = 5; a;", 5},
-// 		{"let a = 5 * 5; a;", 25},
-// 		{"let a = 5; let b = a; b", 5},
-// 		{"let a = 5; let b = a; let c = a + b + 5", 15},
-// 	}
+func TestLetStatements(l_test *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+	}
 
-// 	//for _, tt := range tests {
-// 		//evaluated := test_eval(tt.input)
-// 		//test_integer_object(l_test, evaluated, tt.expected)
-// 	//}
-// }
+	for _, tt := range tests {
+		test_integer_object(l_test, test_eval(tt.input), tt.expected)
+	}
+}
 
 // Helpers
 func test_eval(input string) object.Object {
