@@ -15,11 +15,6 @@ import (
 )
 
 func main() {
-	// user, err := user.Current()
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	fmt.Printf("Welcome to the Monk programming language!\n")
 	repl.Start(os.Stdin, os.Stdout)
 }
