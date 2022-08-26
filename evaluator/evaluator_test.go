@@ -220,7 +220,7 @@ func TestFunctionApplication(l_test *testing.T) {
 		{"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
 		{"fn(x) { x; }(5)", 5},
 	}
- 
+
 	for _, tt := range tests {
 		test_integer_object(l_test, test_eval(tt.input), tt.expected)
 	}
