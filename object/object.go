@@ -109,4 +109,4 @@ type String struct {
 }
 
 func (s *String) Type() ObjectType { return STRING_OBJECT }
-func (s *String) Inspec() string   { return s.Value }
+func (s *String) Inspect() string   { return s.Value }
