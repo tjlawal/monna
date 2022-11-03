@@ -87,7 +87,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return apply_function(function, args)
 
 	case *ast.StringLiteral:
-		return &object.String{Value: node.Value }
+		return &object.String{Value: node.Value}
 	}
 
 	return nil
@@ -175,13 +175,6 @@ func eval_block_statement(block *ast.BlockStatement, env *object.Environment) ob
 	return result
 }
 
-func native_bool_to_boolean_object(input bool) *object.Boolean {
-	if input {
-		return TRUE
-	}
-	return FALSE
-}
-
 func eval_prefix_expression(operator string, right object.Object) object.Object {
 	switch operator {
 	case "!":
@@ -231,6 +224,9 @@ func eval_infix_expression(operator string, left object.Object, right object.Obj
 
 	case left.Type() != right.Type():
 		return new_error("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+
+	case left.Type() == object.STRING_OBJECT && right.Type() == object.STRING_OBJECT:
+		return eval_string_infix_expression(operator, left, right)
 	default:
 		return new_error("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -270,6 +266,19 @@ func eval_integer_infix_expression(operator string, left object.Object, right ob
 	}
 }
 
+/*
+   FEATURES TODO:
+   - Add support for string comparision '==' and '!='.
+*/
+func eval_string_infix_expression(operator string, left object.Object, right object.Object) object.Object {
+	if operator != "+" {
+		return new_error("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+	left_value := left.(*object.String).Value
+	right_value := right.(*object.String).Value
+	return &object.String{Value: left_value + right_value}
+}
+
 func eval_if_expression(ie *ast.IfExpression, env *object.Environment) object.Object {
 	condition := Eval(ie.Condition, env)
 
@@ -284,6 +293,13 @@ func eval_if_expression(ie *ast.IfExpression, env *object.Environment) object.Ob
 	} else {
 		return NULL
 	}
+}
+
+func native_bool_to_boolean_object(input bool) *object.Boolean {
+	if input {
+		return TRUE
+	}
+	return FALSE
 }
 
 func is_truthy(object object.Object) bool {
