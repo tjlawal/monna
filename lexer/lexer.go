@@ -62,6 +62,9 @@ func (l_lexer *Lexer) NextToken() token.Token {
 		tok = new_token(token.LT, l_lexer.current_char)
 	case '>':
 		tok = new_token(token.GT, l_lexer.current_char)
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l_lexer.read_string()
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -133,4 +136,20 @@ func (l_lexer *Lexer) read_number() string {
 
 func is_digit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
+}
+
+/*
+   Read the current character until it encounters a closing '"' or end of input.
+   TODO: some additional thing that can be done at the lexer level with strings is to report an error when it
+   reaches the end of input without proper termination. Support for character escaping would be really neat.
+*/
+func (l_lexer *Lexer) read_string() string {
+	position := l_lexer.position + 1
+	for {
+		l_lexer.read_char()
+		if l_lexer.current_char == '"' || l_lexer.current_char == 0 {
+			break
+		}
+	}
+	return l_lexer.input[position:l_lexer.position]
 }

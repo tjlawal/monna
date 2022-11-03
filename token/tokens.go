@@ -13,8 +13,9 @@ const (
 	COMMENT = "COMMENT" // TODO(tijani): Implement this!!
 
 	// Identifiers and basic type literals
-	IDENT = "IDENT"
-	INT   = "INT"
+	IDENT  = "IDENT"
+	INT    = "INT"
+	STRING = "STRING"
 
 	// Operators
 	ASSIGN   = "="

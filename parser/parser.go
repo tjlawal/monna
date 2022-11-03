@@ -113,6 +113,9 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	// Call Expression
 	l_parser.register_infix(token.LPAREN, l_parser.parse_call_expression)
 
+	// String
+	l_parser.register_prefix(token.STRING, l_parser.parse_string_literal)
+
 	return l_parser
 }
 
@@ -430,4 +433,11 @@ func (l_parser *Parser) parse_call_arguments() []ast.Expression {
 		return nil
 	}
 	return args
+}
+
+func (l_parser *Parser) parse_string_literal() ast.Expression {
+	return &ast.StringLiteral{
+		Token: l_parser.current_token,
+		Value: l_parser.current_token.Literal,
+	}
 }
