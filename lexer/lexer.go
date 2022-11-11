@@ -139,9 +139,9 @@ func is_digit(ch byte) bool {
 }
 
 /*
-   Read the current character until it encounters a closing '"' or end of input.
-   TODO: some additional thing that can be done at the lexer level with strings is to report an error when it
-   reaches the end of input without proper termination. Support for character escaping would be really neat.
+Read the current character until it encounters a closing '"' or end of input.
+TODO: some additional thing that can be done at the lexer level with strings is to report an error when it
+reaches the end of input without proper termination. Support for character escaping would be really neat.
 */
 func (l_lexer *Lexer) read_string() string {
 	position := l_lexer.position + 1
