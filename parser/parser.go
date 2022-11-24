@@ -18,6 +18,7 @@ const (
 	PRODUCT     // *
 	PREFIX      // -x OR !x
 	CALL        // simple_function(x)
+	INDEX       // array[index[
 )
 
 // Precedence Table
@@ -31,6 +32,7 @@ var precedences = map[token.TokenType]int{
 	token.SLASH:    PRODUCT,
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX,
 }
 
 func (l_parser *Parser) peek_precedence() int {
@@ -115,6 +117,10 @@ func New(l_lexer *lexer.Lexer) *Parser {
 
 	// String
 	l_parser.register_prefix(token.STRING, l_parser.parse_string_literal)
+
+	// Array
+	l_parser.register_prefix(token.LBRACKET, l_parser.parse_array_literal)
+	l_parser.register_infix(token.LBRACKET, l_parser.parse_index_expression)
 
 	return l_parser
 }
@@ -407,7 +413,7 @@ func (l_parser *Parser) parse_function_parameters() []*ast.Identifier {
 func (l_parser *Parser) parse_call_expression(function ast.Expression) ast.Expression {
 	//	defer untrace(trace("parse_call_expression"))
 	expression := &ast.CallExpression{Token: l_parser.current_token, Function: function}
-	expression.Arguments = l_parser.parse_call_arguments()
+	expression.Arguments = l_parser.parse_expression_list(token.RPAREN)
 	return expression
 }
 
@@ -440,4 +446,47 @@ func (l_parser *Parser) parse_string_literal() ast.Expression {
 		Token: l_parser.current_token,
 		Value: l_parser.current_token.Literal,
 	}
+}
+
+// Array
+func (l_parser *Parser) parse_array_literal() ast.Expression {
+	array := &ast.ArrayLiteral{Token: l_parser.current_token}
+	array.Elements = l_parser.parse_expression_list(token.RBRACKET)
+	return array
+}
+
+func (l_parser *Parser) parse_expression_list(end token.TokenType) []ast.Expression {
+	list := []ast.Expression{}
+
+	if l_parser.peek_token_is(end) {
+		l_parser.next_token()
+		return list
+	}
+
+	l_parser.next_token()
+	list = append(list, l_parser.parse_expression(LOWEST))
+
+	for l_parser.peek_token_is(token.COMMA) {
+		l_parser.next_token()
+		l_parser.next_token()
+		list = append(list, l_parser.parse_expression(LOWEST))
+	}
+
+	if !l_parser.expect_peek(end) {
+		return nil
+	}
+
+	return list
+}
+
+func (l_parser *Parser) parse_index_expression(left ast.Expression) ast.Expression {
+	expression := &ast.IndexExpression{Token: l_parser.current_token, Left: left}
+	l_parser.next_token()
+
+	expression.Index = l_parser.parse_expression(LOWEST)
+	if !l_parser.expect_peek(token.RBRACKET) {
+		return nil
+	}
+
+	return expression
 }
