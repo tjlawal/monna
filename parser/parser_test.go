@@ -322,6 +322,14 @@ func TestOperatorPrecedenceParsing(l_test *testing.T) {
 			"add(a + b + c * d / f + g)",
 			"add((((a + b) + ((c * d) / f)) + g))",
 		},
+		{
+			"a * [1, 2, 3, 4][b * c] * d",
+			"((a * ([1, 2, 3, 4][(b * c)])) * d)",
+		},
+		{
+			"add(a * b[2], b[1], 2 * [1, 2][1])",
+			"add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",
+		},
 	}
 	for _, tt := range tests {
 		l_lexer := lexer.New(tt.input)
@@ -673,6 +681,54 @@ func TestStringLiteralExpression(l_test *testing.T) {
 
 	if literal.Value != "hello world" {
 		l_test.Errorf("literal.Value not %q, got=%q", "hello world", literal.Value)
+	}
+}
+
+func TestParsingArrayLiterals(l_test *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+
+	l_lexer := lexer.New(input)
+	l_parser := New(l_lexer)
+	program := l_parser.ParseProgram()
+	check_parser_errors(l_test, l_parser)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	array, ok := statement.Expression.(*ast.ArrayLiteral)
+
+	if !ok {
+		l_test.Fatalf("expression is not ast.ArrayLiteral, got=%T", statement.Expression)
+	}
+
+	if len(array.Elements) != 3 {
+		l_test.Fatalf("len(array.Elements) not 3, got=%d", len(array.Elements))
+	}
+
+	testIntegerLiteral(l_test, array.Elements[0], 1)
+	testInfixExpression(l_test, array.Elements[1], 2, "*", 2)
+	testInfixExpression(l_test, array.Elements[2], 3, "+", 3)
+}
+
+func TestParsingIndexExpressions(l_test *testing.T) {
+	input := "my_array[1+1]"
+
+	l_lexer := lexer.New(input)
+	l_parser := New(l_lexer)
+	program := l_parser.ParseProgram()
+	check_parser_errors(l_test, l_parser)
+
+	statement, ok := program.Statements[0].(*ast.ExpressionStatement)
+	index_expression, ok := statement.Expression.(*ast.IndexExpression)
+
+	if !ok {
+		l_test.Fatalf("expression is not *ast.IndexExpression, got=%T", statement.Expression)
+	}
+
+	if !testIdentifier(l_test, index_expression.Left, "my_array") {
+		return
+	}
+
+	if !testInfixExpression(l_test, index_expression.Index, 1, "+", 1) {
+		return
 	}
 }
 
