@@ -56,9 +56,6 @@ func TestErrorHandling(l_test *testing.T) {
        }
       `, "unknown operator: BOOLEAN + BOOLEAN"},
 		{"foobar", "identifier not found: foobar"},
-
-		// Test to only make sure there is only support for + operator in string concatenation, anything else would be wrong.
-		{`"Hello" - "World"`, "unknown operator: STRING - STRING"},
 	}
 
 	for _, tt := range tests {
@@ -240,65 +237,6 @@ func TestClosures(l_test *testing.T) {
 	test_integer_object(l_test, test_eval(input), 4)
 }
 
-func TestStringLiteral(l_test *testing.T) {
-	input := `"Hello, world!"`
-
-	evaluated := test_eval(input)
-	string, ok := evaluated.(*object.String)
-	if !ok {
-		l_test.Fatalf("object is not String, got=%T (%+v)", evaluated, evaluated)
-	}
-
-	if string.Value != "Hello, world!" {
-		l_test.Errorf("String has wrong value, got=%q", string.Value)
-	}
-}
-
-func TestStringConcatenation(l_test *testing.T) {
-	input := `"Hello" + " " + "World!"`
-
-	evaluated := test_eval(input)
-	string, ok := evaluated.(*object.String)
-	if !ok {
-		l_test.Fatalf("object is not String, got=%T (%+v)", evaluated, evaluated)
-	}
-
-	if string.Value != "Hello World!" {
-		l_test.Errorf("String has wrong value, got=%q", string.Value)
-	}
-}
-
-func TestBuiltinFunctions(l_test *testing.T) {
-	tests := []struct {
-		input    string
-		expected interface{}
-	}{
-		{`len("")`, 0},
-		{`len("four")`, 4},
-		{`len("hello world")`, 11},
-		{`len(1)`, "argument to `len` not supported, got INTEGER"},
-		{`len("one", "two")`, "wrong number of arguments, got=2, want=1"},
-	}
-
-	for _, tt := range tests {
-		evaluated := test_eval(tt.input)
-
-		switch expected := tt.expected.(type) {
-		case int:
-			test_integer_object(l_test, evaluated, int64(expected))
-		case string:
-			error_object, ok := evaluated.(*object.Error)
-			if !ok {
-				l_test.Errorf("object is not Error, got=%T (%+v)", evaluated, evaluated)
-				continue
-			}
-			if error_object.Message != expected {
-				l_test.Errorf("wrong error message, expected=%q, got=%q", expected, error_object.Message)
-			}
-		}
-	}
-}
-
 // Helpers
 func test_eval(input string) object.Object {
 	l_lexer := lexer.New(input)
@@ -314,7 +252,6 @@ func test_integer_object(l_test *testing.T, l_object object.Object, expected int
 	if !ok {
 		l_test.Errorf("object is not integer, got=%T (%+v)", l_object, l_object)
 		return false
-
 	}
 	if result.Value != expected {
 		l_test.Errorf("object has wrong value, got=%d, want=%d", result.Value, expected)

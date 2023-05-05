@@ -13,9 +13,8 @@ const (
 	COMMENT = "COMMENT" // TODO(tijani): Implement this!!
 
 	// Identifiers and basic type literals
-	IDENT  = "IDENT"
-	INT    = "INT"
-	STRING = "STRING"
+	IDENT = "IDENT"
+	INT   = "INT"
 
 	// Operators
 	ASSIGN   = "="
@@ -38,9 +37,6 @@ const (
 	LBRACE    = "{"
 	RBRACE    = "}"
 
-	LBRACKET = "["
-	RBRACKET = "]"
-	
 	// Keywords
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
