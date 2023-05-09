@@ -85,6 +85,7 @@ func New(l_lexer *lexer.Lexer) *Parser {
 	l_parser.register_prefix(token.INT, l_parser.parse_integer_literal)
 	l_parser.register_prefix(token.BANG, l_parser.parse_prefix_expression)
 	l_parser.register_prefix(token.MINUS, l_parser.parse_prefix_expression)
+	l_parser.register_prefix(token.STRING, l_parser.parse_string_literal)
 
 	// Infix Operation
 	l_parser.infix_parse_functions = make(map[token.TokenType]infix_parse_function)
@@ -283,6 +284,13 @@ func (l_parser *Parser) parse_infix_expression(left ast.Expression) ast.Expressi
 	expression.Right = l_parser.parse_expression(precedence)
 
 	return expression
+}
+
+func (l_parser *Parser) parse_string_literal() ast.Expression {
+	return &ast.StringLiteral{
+		Token: l_parser.current_token,
+		Value: l_parser.current_token.Literal,
+	}
 }
 
 func (l_parser *Parser) no_prefix_parse_function_error(l_token_type token.TokenType) {
