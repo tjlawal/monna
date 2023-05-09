@@ -86,9 +86,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return apply_function(function, args)
 
-
 	case *ast.StringLiteral:
-		return &object.String { Value: node.Value }
+		return &object.String{Value: node.Value}
 	}
 
 	return nil
@@ -232,6 +231,9 @@ func eval_infix_expression(operator string, left object.Object, right object.Obj
 
 	case left.Type() != right.Type():
 		return new_error("type mismatch: %s %s %s", left.Type(), operator, right.Type())
+
+	case left.Type() == object.STRING_OBJECT && right.Type() == object.STRING_OBJECT:
+		return eval_string_infix_expression(operator, left, right)
 	default:
 		return new_error("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
@@ -285,6 +287,16 @@ func eval_if_expression(ie *ast.IfExpression, env *object.Environment) object.Ob
 	} else {
 		return NULL
 	}
+}
+
+func eval_string_infix_expression(operator string, left, right object.Object) object.Object {
+	if operator != "+" {
+		return new_error("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+
+	left_value := left.(*object.String).Value
+	right_value := right.(*object.String).Value
+	return &object.String{Value: left_value + right_value}
 }
 
 func is_truthy(object object.Object) bool {
