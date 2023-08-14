@@ -1,6 +1,9 @@
 package evaluator
 
-import "monkey/object"
+import(
+	"fmt"
+	"monkey/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{
@@ -15,6 +18,14 @@ var builtins = map[string]*object.Builtin{
 			default:
 				return new_error("argument to `len` not supported, got %s", args[0].Type())
 			}
+		},
+	},
+	"puts": &object.Builtin {
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return NULL // puts only print things passed into it, it does not return a value when used in a function or such.
 		},
 	},
 }
