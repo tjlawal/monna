@@ -111,14 +111,19 @@ func eval_program(program *ast.Program, env *object.Environment) object.Object {
 }
 
 func apply_function(fn object.Object, args []object.Object) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
-		return new_error("not a function: %s", fn.Type())
+	switch fn := fn.(type) {
+	case *object.Function:
+		extended_env := extend_function_env(fn, args)
+		evaluated := Eval(fn.Body, extended_env)
+		return unwrap_return_value(evaluated)
+
+	case *object.Builtin:
+		return fn.Fn(args...)
+
+	default:
+		return new_error("not a funciton: %s", fn.Type())
 	}
 
-	extended_env := extend_function_env(function, args)
-	evaluated := Eval(function.Body, extended_env)
-	return unwrap_return_value(evaluated)
 }
 
 func extend_function_env(fn *object.Function, args []object.Object) *object.Environment {
@@ -151,11 +156,14 @@ func eval_expression(expressions []ast.Expression, env *object.Environment) []ob
 }
 
 func eval_identifier(node *ast.Identifier, env *object.Environment) object.Object {
-	val, ok := env.Get(node.Value)
-	if !ok {
-		return new_error("identifier not found: " + node.Value)
+	if val, ok := env.Get(node.Value); ok {
+		return val
 	}
-	return val
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+
+	return new_error("identifier not found: " + node.Value)
 }
 
 func eval_block_statement(block *ast.BlockStatement, env *object.Environment) object.Object {
