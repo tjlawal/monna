@@ -1,6 +1,7 @@
 ## Monk Programming Language
 This project is a result of learning the innards of compilers. This is an interpreter but there are really not so different other than not so minor differences :) 
-The book in question [Writing an Interpreter In Go](https://interpreterbook.com/).
+
+The book in question: [Writing an Interpreter In Go](https://interpreterbook.com/).
 
 ![Demo of monkey working](/doc/demo.png)
 
