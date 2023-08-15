@@ -1,6 +1,5 @@
 ## Monk Programming Language
-
-The code from this book is a result of learning how to make an interpreter from the book [Writing an Interpreter In Go](https://interpreterbook.com/).
+This project is a result of learning the innards of compilers. This is an interpreter but there are really not so different other than minor differences :) The book in questinon [Writing an Interpreter In Go](https://interpreterbook.com/).
 
 ![Demo of monkey working](/doc/demo.png)
 
