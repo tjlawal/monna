@@ -1,7 +1,5 @@
 ## Monk Programming Language
-This project is a result of learning the innards of compilers. This is an interpreter but there are really not so different other than not so minor differences :) 
-
-The book in question: [Writing an Interpreter In Go](https://interpreterbook.com/).
+This project is a result of learning the innards of compilers. Among other compiler books that I learned from, this was the most influential, especially in making this project: [Writing an Interpreter In Go](https://interpreterbook.com/).
 
 ![Demo of monkey working](/doc/demo.png)
 
@@ -39,3 +37,7 @@ puts("Sugar, spice, and everything nice!");
 Sugar, spice, and everything nice!
 
 ```
+
+#### Error Handling:
+The monkey programming language also responds accordingly to errors:
+![Error Handling](/doc/error_handling.png)
