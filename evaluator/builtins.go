@@ -2,7 +2,7 @@ package evaluator
 
 import(
 	"fmt"
-	"monkey/object"
+	"monna/object"
 )
 
 var builtins = map[string]*object.Builtin{

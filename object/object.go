@@ -3,7 +3,7 @@ package object
 import (
 	"bytes"
 	"fmt"
-	"monkey/ast"
+	"monna/ast"
 	"strings"
 )
 

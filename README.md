@@ -1,10 +1,10 @@
-## Monk Programming Language
+## Monna Programming Language
 This project is a result of learning the innards of compilers. Among other compiler books that I learned from, this was the most influential, especially in making this project: [Writing an Interpreter In Go](https://interpreterbook.com/).
 
-![Demo of monkey working](/doc/demo.png)
+![Demo of Monna working](/doc/demo.png)
 
 ### Using
-To use the monkey interpreter, simply run `go run main.go` in the project directory.To get an executable, run `go build` in the project directory.
+To use the Monna interpreter, simply run `go run main.go` in the project directory.To get an executable, run `go build` in the project directory.
 
 ### Features
 #### Variables:
@@ -39,5 +39,5 @@ Sugar, spice, and everything nice!
 ```
 
 #### Error Handling:
-The monkey programming language also responds accordingly to errors:
+The Monna programming language also responds accordingly to errors:
 ![Error Handling](/doc/error_handling.png)

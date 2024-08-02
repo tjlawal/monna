@@ -1,9 +1,9 @@
 package evaluator
 
 import (
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+	"monna/lexer"
+	"monna/object"
+	"monna/parser"
 	"testing"
 )
 

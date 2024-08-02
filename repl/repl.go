@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+	"monna/evaluator"
+	"monna/lexer"
+	"monna/object"
+	"monna/parser"
 )
 
 const MONKEY_FACE = `            __,__

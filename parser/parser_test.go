@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"monkey/ast"
-	"monkey/lexer"
+	"monna/ast"
+	"monna/lexer"
 	"testing"
 )
 

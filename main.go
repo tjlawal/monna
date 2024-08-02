@@ -11,10 +11,10 @@ import (
 	"fmt"
 	"os"
 
-	"monkey/repl"
+	"monna/repl"
 )
 
 func main() {
-	fmt.Printf("Welcome to the Monk programming language!\n")
+	fmt.Printf("Hello human, type some commands: \n")
 	repl.Start(os.Stdin, os.Stdout)
 }
