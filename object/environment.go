@@ -20,7 +20,7 @@ func NewEnvironment() *Environment {
 /*
    Enclosing Environments
 
-   Here is a problem case, lets say in monkey I would want to type this:
+   Here is a problem case, lets say in monna I would want to type this:
 
    ```
    let i = 5;
@@ -32,7 +32,7 @@ func NewEnvironment() *Environment {
    puts(i);
    ```
 
-  The ideal result of the above code in the monkey programming language is for 10 and 5 to be the outputs respectively.
+  The ideal result of the above code in the monna programming language is for 10 and 5 to be the outputs respectively.
   In a situation where enclosed environment does not exists, both outputs will be 10 because the current value of i
   would be overwritten. The ideal situation would be to preserve the previous binding to 'i' while also making a a new
   one.
